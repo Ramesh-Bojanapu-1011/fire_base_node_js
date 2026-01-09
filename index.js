@@ -33,7 +33,7 @@ app.post("/users", async (req, res) => {
   }
 });
 
-app.get("/users", async (req, res) => {
+app.get("/allusers", async (req, res) => {
   try {
     const users = await getAllUsers();
     res.json(users);
@@ -42,9 +42,13 @@ app.get("/users", async (req, res) => {
   }
 });
 
-app.get("/users/:id", async (req, res) => {
+app.get("/users", async (req, res) => {
   try {
-    const user = await getUser(req.params.id);
+    const { id } = req.query;
+    if (!id) {
+      return res.status(400).json({ error: "ID query parameter is required" });
+    }
+    const user = await getUser(id);
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
