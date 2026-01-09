@@ -54,9 +54,9 @@ const firebaseConfig = {
 
 ## Project Structure
 
-```
+```folder
 firebase-node-js/
-├── index.js              # Main entry point with demo
+├── index.js              # Express REST API entry point
 ├── firebase-config.js    # Firebase initialization
 ├── user-crud.js          # CRUD operations
 ├── package.json          # Project dependencies
@@ -120,6 +120,43 @@ npm start
 node index.js
 ```
 
+The API listens on `PORT` (defaults to `3000`).
+
+## REST API
+
+Base URL: `http://localhost:3000`
+
+- `GET /` — Health check
+- `GET /users` — List all users
+- `GET /users/:id` — Get a user by ID
+- `POST /users` — Create a user
+  - Body: `{ "name": string, "email": string, "age"?: number, "city"?: string }`
+- `PUT /users/:id` — Update a user (send partial fields)
+- `DELETE /users/:id` — Delete a user
+
+### cURL examples
+
+```bash
+# Create
+curl -X POST http://localhost:3000/users \
+  -H "Content-Type: application/json" \
+  -d '{"name":"John Doe","email":"john@example.com","age":28,"city":"New York"}'
+
+# Read all
+curl http://localhost:3000/users
+
+# Read by id
+curl http://localhost:3000/users/<USER_ID>
+
+# Update
+curl -X PUT http://localhost:3000/users/<USER_ID> \
+  -H "Content-Type: application/json" \
+  -d '{"city":"Boston"}'
+
+# Delete
+curl -X DELETE http://localhost:3000/users/<USER_ID>
+```
+
 ## Firebase Database Rules
 
 For testing purposes, set these rules in Firebase Console under **Database Rules**:
@@ -144,7 +181,7 @@ For testing purposes, set these rules in Firebase Console under **Database Rules
 
 ## Example Output
 
-```
+```output
 === Firebase CRUD Operations Demo ===
 
 1️⃣ CREATE: Adding new users...

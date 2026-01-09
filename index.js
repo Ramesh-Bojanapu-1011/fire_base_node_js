@@ -1,63 +1,94 @@
-import { createUser, getUser, getAllUsers, updateUser, deleteUser } from './user-crud.js';
+import express from "express";
+import {
+  createUser,
+  getUser,
+  getAllUsers,
+  updateUser,
+  deleteUser,
+} from "./user-crud.js";
+import moragan from "morgan";
 
-/**
- * Demo function showing CRUD operations
- */
-async function runDemo() {
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.use(express.json());
+app.use(moragan("common"));
+
+app.get("/", (req, res) => {
+  res.json({ status: "ok", message: "Firebase CRUD API is running" });
+});
+
+app.post("/users", async (req, res) => {
   try {
-    console.log('\n=== Firebase CRUD Operations Demo ===\n');
+    const { name, email, age, city } = req.body || {};
+    if (!name || !email) {
+      return res.status(400).json({ error: "Name and email are required" });
+    }
 
-    // CREATE - Add a new user
-    console.log('1️⃣ CREATE: Adding new users...');
-    const userId1 = await createUser({
-      name: 'John Doe',
-      email: 'john@example.com',
-      age: 28,
-      city: 'New York'
-    });
-
-    const userId2 = await createUser({
-      name: 'Jane Smith',
-      email: 'jane@example.com',
-      age: 25,
-      city: 'Los Angeles'
-    });
-
-    // READ - Get specific user
-    console.log('\n2️⃣ READ: Getting a specific user...');
-    const user = await getUser(userId1);
-    console.log('User data:', user);
-
-    // READ - Get all users
-    console.log('\n3️⃣ READ: Getting all users...');
-    const allUsers = await getAllUsers();
-    console.log('All users:', allUsers);
-
-    // UPDATE - Update user data
-    console.log('\n4️⃣ UPDATE: Updating user data...');
-    await updateUser(userId1, {
-      age: 29,
-      city: 'Boston'
-    });
-
-    console.log('Updated user:', await getUser(userId1));
-
-    // DELETE - Delete a user
-    console.log('\n5️⃣ DELETE: Deleting a user...');
-    await deleteUser(userId2);
-
-    // Final list of users
-    console.log('\n📋 Final user list:');
-    const finalUsers = await getAllUsers();
-    console.log('Final users:', finalUsers);
-
-    console.log('\n✨ Demo completed successfully!');
-
+    const userId = await createUser({ name, email, age, city });
+    const createdUser = await getUser(userId);
+    res.status(201).json(createdUser);
   } catch (error) {
-    console.error('Demo error:', error);
+    res.status(400).json({ error: error.message || "Failed to create user" });
   }
-}
+});
 
-// Run the demo
-runDemo();
+app.get("/users", async (req, res) => {
+  try {
+    const users = await getAllUsers();
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch users" });
+  }
+});
 
+app.get("/users/:id", async (req, res) => {
+  try {
+    const user = await getUser(req.params.id);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch user" });
+  }
+});
+
+app.put("/users/:id", async (req, res) => {
+  try {
+    const updates = req.body || {};
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ error: "No data provided to update" });
+    }
+
+    await updateUser(req.params.id, updates);
+    const updatedUser = await getUser(req.params.id);
+    res.json(updatedUser);
+  } catch (error) {
+    const status = error.message === "User not found" ? 404 : 400;
+    res
+      .status(status)
+      .json({ error: error.message || "Failed to update user" });
+  }
+});
+
+app.delete("/users/:id", async (req, res) => {
+  try {
+    await deleteUser(req.params.id);
+    res.status(204).send();
+  } catch (error) {
+    const status = error.message === "User not found" ? 404 : 400;
+    res
+      .status(status)
+      .json({ error: error.message || "Failed to delete user" });
+  }
+});
+
+app.use((err, req, res, next) => {
+  console.error("Unexpected error:", err);
+  res.status(500).json({ error: "Internal server error" });
+});
+
+app.listen(PORT, () => {
+  console.log(`🚀 Server listening on port ${PORT}`);
+});
