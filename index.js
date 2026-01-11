@@ -1,24 +1,24 @@
-import express from "express";
-import {
+const express = require("express");
+const moragan = require("morgan");
+const {
   createUser,
-  getUser,
   getAllUsers,
+  getUser,
   updateUser,
   deleteUser,
-} from "./user-crud.js";
-import moragan from "morgan";
+} = require("./user-crud");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
-app.use(moragan("common"));
+app.use(moragan("dev"));
 
 app.get("/", (req, res) => {
   res.json({ status: "ok", message: "Firebase CRUD API is running" });
 });
 
-app.post("/users", async (req, res) => {
+app.post("/create_user", async (req, res) => {
   try {
     const { name, email, age, city } = req.body || {};
     if (!name || !email) {
@@ -33,7 +33,7 @@ app.post("/users", async (req, res) => {
   }
 });
 
-app.get("/allusers", async (req, res) => {
+app.get("/all_users", async (req, res) => {
   try {
     const users = await getAllUsers();
     res.json(users);
@@ -42,7 +42,7 @@ app.get("/allusers", async (req, res) => {
   }
 });
 
-app.get("/users", async (req, res) => {
+app.get("/single_user", async (req, res) => {
   try {
     const { id } = req.query;
     if (!id) {
@@ -58,15 +58,19 @@ app.get("/users", async (req, res) => {
   }
 });
 
-app.put("/users/:id", async (req, res) => {
+app.put("/update_user", async (req, res) => {
   try {
+    const { id } = req.query;
+    if (!id) {
+      return res.status(400).json({ error: "ID query parameter is required" });
+    }
     const updates = req.body || {};
     if (Object.keys(updates).length === 0) {
       return res.status(400).json({ error: "No data provided to update" });
     }
 
-    await updateUser(req.params.id, updates);
-    const updatedUser = await getUser(req.params.id);
+    await updateUser(id, updates);
+    const updatedUser = await getUser(id);
     res.json(updatedUser);
   } catch (error) {
     const status = error.message === "User not found" ? 404 : 400;
@@ -76,10 +80,16 @@ app.put("/users/:id", async (req, res) => {
   }
 });
 
-app.delete("/users/:id", async (req, res) => {
+app.delete("/delete_user", async (req, res) => {
   try {
-    await deleteUser(req.params.id);
-    res.status(204).send();
+    const { id } = req.query;
+    if (!id) {
+      return res.status(400).json({ error: "ID query parameter is required" });
+    }
+    await deleteUser(id);
+    res.json({
+      message: "User deleted successfully",
+    });
   } catch (error) {
     const status = error.message === "User not found" ? 404 : 400;
     res

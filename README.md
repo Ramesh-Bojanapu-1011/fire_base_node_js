@@ -41,7 +41,7 @@ const firebaseConfig = {
   storageBucket: "YOUR_STORAGE_BUCKET",
   messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
   appId: "YOUR_APP_ID",
-  databaseURL: "YOUR_DATABASE_URL"
+  databaseURL: "YOUR_DATABASE_URL",
 };
 ```
 
@@ -70,10 +70,10 @@ firebase-node-js/
 
 ```javascript
 const userId = await createUser({
-  name: 'John Doe',
-  email: 'john@example.com',
+  name: "John Doe",
+  email: "john@example.com",
   age: 28,
-  city: 'New York'
+  city: "New York",
 });
 ```
 
@@ -96,7 +96,7 @@ console.log(users);
 ```javascript
 await updateUser(userId, {
   age: 29,
-  city: 'Boston'
+  city: "Boston",
 });
 ```
 
